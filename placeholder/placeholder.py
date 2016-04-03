@@ -19,7 +19,7 @@ settings.configure(
     ),
 )
 
-
+import hashlib
 from io import BytesIO
 
 from PIL import Image, ImageDraw
@@ -28,6 +28,7 @@ from django.conf.urls import url
 from django.core.cache import cache
 from django.core.wsgi import get_wsgi_application
 from django.http import HttpResponse, HttpResponseBadRequest
+from django.views.decorators.http import etag
 
 
 class ImageForm(forms.Form):
@@ -64,6 +65,11 @@ def index(request):
     return HttpResponse('Hello World')
 
 
+def generate_etag(request, width, height):
+    content = 'Placeholder: {0} x {1}'.format(width, height)
+    return hashlib.sha1(content.encode('utf-8')).hexdigest()
+
+@etag(generate_etag)
 def placeholder(request, width, height):
     form = ImageForm({'height': height, 'width': width})
     if form.is_valid():
